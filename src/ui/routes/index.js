@@ -2,7 +2,7 @@ import React, { Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import { routes } from "./routes";
 
-const ApplicationRoutes = () => {
+const ApplicationRoutes = (props) => {
   return (
     <Suspense fallback={<div>loading...</div>}>
       <Routes>

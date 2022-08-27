@@ -1,13 +1,18 @@
-import { BrowserRouter } from 'react-router-dom';
-import ApplicationRoutes from './routes';
-import './App.css';
+import { BrowserRouter } from "react-router-dom";
+import ApplicationRoutes from "./ui/routes";
+import "./App.css";
+import { GraphQLClient, ClientContext } from "graphql-hooks";
+const client = new GraphQLClient({
+  url: "http://smart-meeting.herokuapp.com",
+});
 
 function App() {
   return (
-    // <div>Heys</div>
-    <BrowserRouter>
+    <ClientContext.Provider value={client}>
+      <BrowserRouter>
         <ApplicationRoutes />
       </BrowserRouter>
+    </ClientContext.Provider>
   );
 }
 
