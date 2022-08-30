@@ -4,36 +4,58 @@ import { Text } from "../components/index";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "graphql-hooks";
 
-const HOMEPAGE_QUERY = `query HomePage {
-  Buildings {
+ export const BUILDING_QUERY = `query Building {
+  Buildings{
     name
   }
 }`;
 
+ const MEETING_ROOM_QUERY = `query Room
+{
+  MeetingRooms{
+    name
+    }
+}`;
+
+ const MEETING_QUERY = `
+query Meeting
+{
+  Meetings
+  {
+    title
+    date
+    startTime
+    endTime
+  }
+}`;
 const Home = (props) => {
   let navigate = useNavigate();
-  const { loading, error, data } = useQuery(HOMEPAGE_QUERY);
-  if (data) console.log(data.Buildings.length, "data");
+
+  const { data: buildingData } = useQuery(BUILDING_QUERY);
+  const { data: RoomData } = useQuery(MEETING_ROOM_QUERY);
+  const { data: MeetingsData } = useQuery(MEETING_QUERY);
+  var today = new Date();
+  console.log(MeetingsData, "meetings");
   return (
     <div className="home-container">
       <div className="content-div ">
         <Text font="14px" weight="500">
           Buildings
         </Text>
-        <Text font="12px">Total : {data?.Buildings?.length}</Text>
+        <Text font="12px">Total : {buildingData?.Buildings?.length}</Text>
       </div>
       <div className="content-div ">
         <Text font="14px" weight="500">
           Rooms
         </Text>
-        <Text font="12px">Total :</Text>
+        <Text font="12px">Total : {RoomData?.MeetingRooms?.length}</Text>
         <Text font="12px">Free Now:</Text>
       </div>
       <div className="content-div ">
         <Text font="14px" weight="500">
           Meetings
         </Text>
-        <Text font="12px">Total :</Text>
+        <Text font="12px">Total : {MeetingsData?.Meetings?.length}</Text>
         <Text font="12px">Free Now:</Text>
       </div>
       <div className="common btn">

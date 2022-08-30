@@ -2,7 +2,7 @@ body {
   height: 100vh;
   padding: 20px;
 
-  .home-container {
+  .add-meeting-container {
     height: 95vh;
     display: flex;
     flex-direction: column;
@@ -15,6 +15,8 @@ body {
       text-align: left;
       margin: 3px 0;
       padding: 10px;
+      display: flex;
+        justify-content: flex-start;
       // border: 1px solid grey;
     }
 
@@ -23,6 +25,41 @@ body {
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
+    }
+    .label-container {
+          display: flex;
+          justify-content: flex-start;
+          flex-direction: column;
+      }
+    
+    .input-fields {
+          margin-left: 10%;
+          display: flex;
+          justify-content: flex-start;
+          flex-direction: column;
+    
+    }
+    .field-wrapper
+    {
+      display:flex;
+      justify-content: flex-start;
+    }
+    .label{
+      margin:5px;
+      margin-bottom: 35%;
+    }
+    .MuiOutlinedInput-inputAdornedStart
+    {
+      padding: 0;
+      margin: 8px 0;
+    }
+    .MuiOutlinedInput-adornedStart 
+    {
+      margin-bottom: 8px;
+    }
+    .Dropdown-control
+    {
+      margin-top: 16px;
     }
 
     button {
