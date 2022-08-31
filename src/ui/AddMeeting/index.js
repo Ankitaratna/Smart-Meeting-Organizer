@@ -9,7 +9,8 @@ import {
   MuiPickersUtilsProvider,
 } from "@material-ui/pickers";
 import { useQuery } from "graphql-hooks";
-
+import Modal from "@mui/material/Modal";
+import Fade from "@mui/material/Fade";
 import Dropdown from "react-dropdown";
 import "react-dropdown/style.css";
 import { BUILDING_QUERY } from "../Home";
@@ -24,6 +25,11 @@ const MEETING_ROOM_QUERY = `query FetchRoom($id:Int!)
     {
       name
       id
+      floor
+      building {
+        id
+        name
+      }
       meetings{
         startTime
         endTime
@@ -47,6 +53,9 @@ const AddMeeting = (props) => {
   const [meetingRoomSpecs, setMeetingRoomSpecs] = useState(getDefaultSpecs());
 
   const [vacantRooms, setVacantRooms] = useState([]);
+  const [modalConfig, setModalConfig] = useState({
+    open: false,
+  });
   const [building, setBuilding] = useState();
 
   const { data: buildingData } = useQuery(BUILDING_QUERY);
@@ -138,6 +147,7 @@ const AddMeeting = (props) => {
   const submitMeetingDetails = () => {
     if (validateMeetingDetailsForm()) {
       setVacantRooms(getAvailableRooms());
+      setModalConfig((prevConfig) => ({ ...prevConfig, open: true }));
     }
   };
 
@@ -148,6 +158,16 @@ const AddMeeting = (props) => {
       ...prevSpecs,
       [key]: data,
     }));
+  };
+
+  const bookMeetingRoom = () => {
+    // Make the API call with this id
+    if (modalConfig?.selectedCardId) {
+      const meetingRoomDataPayload = vacantRooms.find(
+        (item) => item.id === modalConfig?.selectedCardId
+      );
+      console.log(meetingRoomDataPayload);
+    }
   };
 
   return (
@@ -207,6 +227,40 @@ const AddMeeting = (props) => {
       <div className="common btn">
         <button onClick={submitMeetingDetails}>Next</button>
       </div>
+      {modalConfig.open && (
+        <Modal
+          open={modalConfig.open}
+          onClose={() =>
+            setModalConfig((prevConfig) => ({ ...prevConfig, open: false }))
+          }
+          aria-labelledby="parent-modal-title"
+          aria-describedby="parent-modal-description"
+        >
+          <Fade in={modalConfig.open}>
+            <div className="modalWrapper">
+              <h2>Please select one of the free rooms</h2>
+              {vacantRooms &&
+                vacantRooms?.length &&
+                vacantRooms.map(({ name, building, floor, id }) => (
+                  <div
+                    className="roomDetailsWrapper"
+                    onClick={() =>
+                      setModalConfig((prevConfig) => ({
+                        ...prevConfig,
+                        selectedCardId: id,
+                      }))
+                    }
+                  >
+                    <h3>{name}</h3>
+                    <p>{building?.name}</p>
+                    <p>{`Floor: ${floor}`}</p>
+                  </div>
+                ))}
+              <button onClick={bookMeetingRoom}>Save</button>
+            </div>
+          </Fade>
+        </Modal>
+      )}
     </div>
   );
 };
