@@ -8,46 +8,37 @@ import {
   KeyboardTimePicker,
   MuiPickersUtilsProvider,
 } from "@material-ui/pickers";
-import { useQuery } from "graphql-hooks";
+import { useQuery, useMutation } from "graphql-hooks";
 import Modal from "@mui/material/Modal";
 import Fade from "@mui/material/Fade";
 import Dropdown from "react-dropdown";
 import "react-dropdown/style.css";
+import {
+  ADD_MEETING,
+  MEETING_QUERY,
+  MEETING_ROOM_QUERY,
+} from "../../utils/api/gql-queries/add-meeting-gql-query";
 import { BUILDING_QUERY } from "../Home";
 
-const MEETING_ROOM_QUERY = `query FetchRoom($id:Int!)
-{
-  Building(id:$id)
-  {
-     id
-    name
-   meetingRooms
-    {
-      name
-      id
-      floor
-      building {
-        id
-        name
-      }
-      meetings{
-        startTime
-        endTime
-        date
-      }
-     
-    }
-   
-  }
-}`;
+
 
 const AddMeeting = (props) => {
-  let navigate = useNavigate();
+  const [AddMeeting] = useMutation(ADD_MEETING);
+  const { data: MeetingsData } = useQuery(MEETING_QUERY);
 
   let getDefaultSpecs = () => ({
-    selectedDate: +new Date(),
-    startTime: new Date(),
-    endTime: new Date(),
+    selectedDate: {
+      value: +new Date(),
+      error: false,
+    },
+    startTime: {
+      value: +new Date(),
+      error: false,
+    },
+    endTime: {
+      value: +new Date() + 30 * 60 * 1000,
+      error: false,
+    },
   });
 
   const [meetingRoomSpecs, setMeetingRoomSpecs] = useState(getDefaultSpecs());
@@ -71,7 +62,23 @@ const AddMeeting = (props) => {
   };
 
   const validateMeetingDetailsForm = () => {
-    return true;
+    let isValid = true;
+
+    Object.entries(meetingRoomSpecs).forEach(([key, fieldData]) => {
+      if (!fieldData?.value) {
+        isValid = false;
+        setMeetingRoomSpecs((prevSpecs) => ({
+          ...prevSpecs,
+          [key]: {
+            value: prevSpecs[key].value,
+            error: true,
+          },
+        }));
+      }
+    });
+    if (!building?.value) isValid = false;
+
+    return isValid;
   };
 
   const isMeetingClashing = (meeting, meetingRoomSpecs) => {
@@ -79,7 +86,7 @@ const AddMeeting = (props) => {
 
     /* As Date coming from API is in same format */
     const requiredDateEpoch = new Date(
-      meetingRoomSpecs?.selectedDate
+      meetingRoomSpecs?.selectedDate?.value
     ).toLocaleDateString();
 
     let meetingStartTimeSeconds;
@@ -151,22 +158,49 @@ const AddMeeting = (props) => {
     }
   };
 
-  console.log({ vacantRooms });
-
   const handleMeetingDataInput = (data, key) => {
-    setMeetingRoomSpecs((prevSpecs) => ({
-      ...prevSpecs,
-      [key]: data,
-    }));
+    let updatedSpecs = { ...meetingRoomSpecs };
+    switch (key) {
+      case "endTime":
+        updatedSpecs.endTime.value = data;
+        updatedSpecs.endTime.error = data <= meetingRoomSpecs?.startTime?.value;
+        updatedSpecs.startTime.error = data >= meetingRoomSpecs?.endTime?.value;
+        break;
+
+      case "startTime":
+        updatedSpecs.startTime.value = data;
+        updatedSpecs.endTime.error = data <= meetingRoomSpecs?.startTime?.value;
+        updatedSpecs.startTime.error = data >= meetingRoomSpecs?.endTime?.value;
+        break;
+
+      default:
+        updatedSpecs[key].value = data;
+    }
+
+    setMeetingRoomSpecs(updatedSpecs);
   };
 
   const bookMeetingRoom = () => {
-    // Make the API call with this id
     if (modalConfig?.selectedCardId) {
-      const meetingRoomDataPayload = vacantRooms.find(
-        (item) => item.id === modalConfig?.selectedCardId
-      );
-      console.log(meetingRoomDataPayload);
+      const payload = {
+        id: Number(MeetingsData?.Meetings?.length) + 1,
+        title: meetingRoomSpecs?.title || "New Meeting",
+        startTime: meetingRoomSpecs?.startTime
+          ? `${new Date(meetingRoomSpecs.startTime).getHours()}:${new Date(
+              meetingRoomSpecs.startTime
+            ).getMinutes()}`
+          : "",
+        endTime: meetingRoomSpecs?.endTime
+          ? `${new Date(meetingRoomSpecs.endTime).getHours()}:${new Date(
+              meetingRoomSpecs.endTime
+            ).getMinutes()}`
+          : "",
+        meetingRoomId: modalConfig?.selectedCardId,
+        date: new Date(meetingRoomSpecs?.value).toLocaleDateString(),
+      };
+      AddMeeting({
+        variables: payload,
+      });
     }
   };
 
@@ -182,12 +216,14 @@ const AddMeeting = (props) => {
         <div className="input-fields">
           <MuiPickersUtilsProvider utils={MomentUtils}>
             <KeyboardDatePicker
+              disablePast={true}
               autoOk
               variant="inline"
               inputVariant="outlined"
               format="	
               DD/MM/YY"
-              value={meetingRoomSpecs?.selectedDate}
+              value={meetingRoomSpecs?.selectedDate?.value}
+              error={meetingRoomSpecs?.selectedDate?.error}
               InputAdornmentProps={{ position: "start" }}
               onChange={(data) => handleMeetingDataInput(data, "selectedDate")}
             />
@@ -196,7 +232,8 @@ const AddMeeting = (props) => {
             <KeyboardTimePicker
               margin="normal"
               id="time-picker"
-              value={meetingRoomSpecs?.startTime}
+              error={meetingRoomSpecs?.startTime?.error}
+              value={meetingRoomSpecs?.startTime?.value}
               onChange={(data) => handleMeetingDataInput(data, "startTime")}
               KeyboardButtonProps={{
                 "aria-label": "change time",
@@ -207,7 +244,8 @@ const AddMeeting = (props) => {
             <KeyboardTimePicker
               margin="normal"
               id="time-picker"
-              value={meetingRoomSpecs?.endTime}
+              error={meetingRoomSpecs?.endTime?.error}
+              value={meetingRoomSpecs?.endTime?.value}
               onChange={(data) => handleMeetingDataInput(data, "endTime")}
               KeyboardButtonProps={{
                 "aria-label": "change time",
@@ -225,7 +263,13 @@ const AddMeeting = (props) => {
         </div>
       </div>
       <div className="common btn">
-        <button onClick={submitMeetingDetails}>Next</button>
+        <button
+          className={building ? "next-button" : "disabled-button"}
+          onClick={submitMeetingDetails}
+          type="button"
+        >
+          Next
+        </button>
       </div>
       {modalConfig.open && (
         <Modal
@@ -243,7 +287,9 @@ const AddMeeting = (props) => {
                 vacantRooms?.length &&
                 vacantRooms.map(({ name, building, floor, id }) => (
                   <div
-                    className="roomDetailsWrapper"
+                    className={`roomDetailsWrapper ${
+                      modalConfig?.selectedCardId === id ? "selected" : ""
+                    }`}
                     onClick={() =>
                       setModalConfig((prevConfig) => ({
                         ...prevConfig,

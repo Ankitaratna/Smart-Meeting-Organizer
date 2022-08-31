@@ -4,6 +4,7 @@ import "./App.css";
 import { GraphQLClient, ClientContext } from "graphql-hooks";
 const client = new GraphQLClient({
   url: "http://smart-meeting.herokuapp.com",
+  headers: { token: "a123gjhgjsdf6576" },
 });
 
 function App() {
