@@ -7,6 +7,7 @@ import { useQuery } from "graphql-hooks";
  export const BUILDING_QUERY = `query Building {
   Buildings{
     name
+    id
   }
 }`;
 
