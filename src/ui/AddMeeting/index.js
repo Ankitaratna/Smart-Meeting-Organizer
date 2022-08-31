@@ -82,7 +82,7 @@ const AddMeeting = (props) => {
   };
 
   const isMeetingClashing = (meeting, meetingRoomSpecs) => {
-    const meetingDateEpoch = meeting?.date;
+    const meetingDate = meeting?.date;
 
     /* As Date coming from API is in same format */
     const requiredDateEpoch = new Date(
@@ -117,7 +117,7 @@ const AddMeeting = (props) => {
     );
 
     return (
-      meetingDateEpoch === requiredDateEpoch &&
+      meetingDate === requiredDateEpoch &&
       ((requiredStartTimeEpoch > meetingStartTimeSeconds &&
         requiredStartTimeEpoch < meetingEndTimeSeconds) ||
         (requiredEndTimeEpoch > meetingStartTimeSeconds &&
@@ -141,9 +141,9 @@ const AddMeeting = (props) => {
                 isMeetingRoomAvailable = false;
               }
             });
-            if (isMeetingRoomAvailable) {
-              freeMeetingRooms.push(meetingRoom);
-            }
+          }
+          if (isMeetingRoomAvailable) {
+            freeMeetingRooms.push(meetingRoom);
           }
         });
       }
@@ -185,18 +185,22 @@ const AddMeeting = (props) => {
       const payload = {
         id: Number(MeetingsData?.Meetings?.length) + 1,
         title: meetingRoomSpecs?.title || "New Meeting",
-        startTime: meetingRoomSpecs?.startTime
-          ? `${new Date(meetingRoomSpecs.startTime).getHours()}:${new Date(
-              meetingRoomSpecs.startTime
+        startTime: meetingRoomSpecs?.startTime?.value
+          ? `${new Date(
+              meetingRoomSpecs.startTime.value
+            ).getHours()}:${new Date(
+              meetingRoomSpecs.startTime.value
             ).getMinutes()}`
           : "",
-        endTime: meetingRoomSpecs?.endTime
-          ? `${new Date(meetingRoomSpecs.endTime).getHours()}:${new Date(
-              meetingRoomSpecs.endTime
+        endTime: meetingRoomSpecs?.endTime.value
+          ? `${new Date(meetingRoomSpecs.endTime.value).getHours()}:${new Date(
+              meetingRoomSpecs.endTime.value
             ).getMinutes()}`
           : "",
         meetingRoomId: modalConfig?.selectedCardId,
-        date: new Date(meetingRoomSpecs?.value).toLocaleDateString(),
+        date: new Date(
+          meetingRoomSpecs?.selectedDate?.value
+        ).toLocaleDateString(),
       };
       AddMeeting({
         variables: payload,
