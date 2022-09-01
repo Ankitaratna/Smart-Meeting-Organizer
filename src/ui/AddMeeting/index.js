@@ -23,6 +23,7 @@ import { BUILDING_QUERY } from "../Home";
 
 
 const AddMeeting = (props) => {
+  let navigate = useNavigate();
   const [AddMeeting] = useMutation(ADD_MEETING);
   const { data: MeetingsData } = useQuery(MEETING_QUERY);
 
@@ -47,6 +48,7 @@ const AddMeeting = (props) => {
   const [modalConfig, setModalConfig] = useState({
     open: false,
   });
+  const [title, setTitle] = useState("New Meeting");
   const [building, setBuilding] = useState();
 
   const { data: buildingData } = useQuery(BUILDING_QUERY);
@@ -77,7 +79,7 @@ const AddMeeting = (props) => {
       }
     });
     if (!building?.value) isValid = false;
-
+    if (!title) isValid = false;
     return isValid;
   };
 
@@ -108,11 +110,13 @@ const AddMeeting = (props) => {
     const todaysEpoch = +new Date(`${new Date().toDateString()}`);
 
     const requiredStartTimeEpoch = Math.floor(
-      (Number(+new Date(meetingRoomSpecs?.startTime)) - Number(todaysEpoch)) /
+      (Number(+new Date(meetingRoomSpecs?.startTime?.value)) -
+        Number(todaysEpoch)) /
         1000
     );
     const requiredEndTimeEpoch = Math.floor(
-      (Number(+new Date(meetingRoomSpecs?.endTime)) - Number(todaysEpoch)) /
+      (Number(+new Date(meetingRoomSpecs?.endTime?.value)) -
+        Number(todaysEpoch)) /
         1000
     );
 
@@ -164,12 +168,11 @@ const AddMeeting = (props) => {
       case "endTime":
         updatedSpecs.endTime.value = data;
         updatedSpecs.endTime.error = data <= meetingRoomSpecs?.startTime?.value;
-        updatedSpecs.startTime.error = data >= meetingRoomSpecs?.endTime?.value;
+
         break;
 
       case "startTime":
         updatedSpecs.startTime.value = data;
-        updatedSpecs.endTime.error = data <= meetingRoomSpecs?.startTime?.value;
         updatedSpecs.startTime.error = data >= meetingRoomSpecs?.endTime?.value;
         break;
 
@@ -184,7 +187,7 @@ const AddMeeting = (props) => {
     if (modalConfig?.selectedCardId) {
       const payload = {
         id: Number(MeetingsData?.Meetings?.length) + 1,
-        title: meetingRoomSpecs?.title || "New Meeting",
+        title: title || "New Meeting",
         startTime: meetingRoomSpecs?.startTime?.value
           ? `${new Date(
               meetingRoomSpecs.startTime.value
@@ -204,7 +207,11 @@ const AddMeeting = (props) => {
       };
       AddMeeting({
         variables: payload,
-      });
+      })
+        .then((data) => {
+          navigate("/home");
+        })
+        .catch(() => {});
     }
   };
 
@@ -212,12 +219,19 @@ const AddMeeting = (props) => {
     <div className="add-meeting-container">
       <div className="field-wrapper">
         <div className="label-container">
+          <div className="label"> Meeting Title</div>
           <div className="label">Date</div>
           <div className="label"> Start Time</div>
           <div className="label"> End Time</div>
           <div className="label"> Select Building</div>
         </div>
         <div className="input-fields">
+          <input
+            name="title"
+            className="title-field"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
           <MuiPickersUtilsProvider utils={MomentUtils}>
             <KeyboardDatePicker
               disablePast={true}

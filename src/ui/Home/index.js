@@ -36,7 +36,7 @@ const Home = (props) => {
   const { data: RoomData } = useQuery(MEETING_ROOM_QUERY);
   const { data: MeetingsData } = useQuery(MEETING_QUERY);
   var today = new Date();
-  console.log(MeetingsData, "meetings");
+  console.log(MeetingsData, RoomData, "meetings");
   return (
     <div className="home-container">
       <div className="content-div ">
@@ -50,14 +50,12 @@ const Home = (props) => {
           Rooms
         </Text>
         <Text font="12px">Total : {RoomData?.MeetingRooms?.length}</Text>
-        <Text font="12px">Free Now:</Text>
       </div>
       <div className="content-div ">
         <Text font="14px" weight="500">
           Meetings
         </Text>
         <Text font="12px">Total : {MeetingsData?.Meetings?.length}</Text>
-        <Text font="12px">Free Now:</Text>
       </div>
       <div className="common btn">
         <button
