@@ -168,12 +168,15 @@ const AddMeeting = (props) => {
       case "endTime":
         updatedSpecs.endTime.value = data;
         updatedSpecs.endTime.error = data <= meetingRoomSpecs?.startTime?.value;
+        updatedSpecs.startTime.error =
+          data <= meetingRoomSpecs?.startTime?.value;
 
         break;
 
       case "startTime":
         updatedSpecs.startTime.value = data;
         updatedSpecs.startTime.error = data >= meetingRoomSpecs?.endTime?.value;
+        updatedSpecs.endTime.error = data >= meetingRoomSpecs?.endTime?.value;
         break;
 
       default:
@@ -217,6 +220,7 @@ const AddMeeting = (props) => {
 
   return (
     <div className="add-meeting-container">
+      <h1>Add Meeting</h1>
       <div className="field-wrapper">
         <div className="label-container">
           <div className="label"> Meeting Title</div>

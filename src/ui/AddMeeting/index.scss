@@ -8,8 +8,13 @@ body {
     flex-direction: column;
     margin:0 auto;
     border: 2px solid black;
-    padding: 20px;
+    padding: 0.5rem 1rem 1rem 1rem;
     border-radius: 5px;
+
+    h1{
+      text-align: center;
+      padding-bottom: 2rem;
+    }
 
     .title-field
     {
